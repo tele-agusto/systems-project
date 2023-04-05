@@ -18,12 +18,12 @@ class Config:
     SPD = True  # whether or not to make generated matrices symmetric positive definite
 
     # EVALUATION OPTIONS
-    K_FOLDS = 5  # number of cross validation folds
+    K_FOLDS = 3  # number of cross validation folds
 
     # REGGNN OPTIONS
     class RegGNN:
-        NUM_EPOCH = 100  # number of epochs the process will be run for
-        LR = 1e-3  # learning rate
+        NUM_EPOCH = 200  # number of epochs the process will be run for
+        LR = 1e-5  # learning rate
         WD = 5e-4  # weight decay
         DROPOUT = 0.1  # dropout rate
 

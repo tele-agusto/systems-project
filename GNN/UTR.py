@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 def return_h5_path(file):
-    path = f'/content/drive/MyDrive/{file}'
+    path = f'/content/systems-project/GNN/{file}'
     return path
 
 seq_dict = {rec.id : rec.seq for rec in SeqIO.parse(return_h5_path("mart_export.txt"), "fasta")}

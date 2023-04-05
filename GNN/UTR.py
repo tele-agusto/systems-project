@@ -2,8 +2,12 @@ from Bio import SeqIO
 import pandas as pd
 import numpy as np
 
-seq_dict = {rec.id : rec.seq for rec in SeqIO.parse("/Users/tele/open-problems-multimodal/mart_export.txt", "fasta")}
-full_matching_names = pd.read_csv('/Users/tele/open-problems-multimodal/CITEseq22_112_prot_RNA_pairs_13gr.csv')
+def return_h5_path(file):
+    path = f'/content/drive/MyDrive/{file}'
+    return path
+
+seq_dict = {rec.id : rec.seq for rec in SeqIO.parse(return_h5_path("mart_export.txt"), "fasta")}
+full_matching_names = pd.read_csv(return_h5_path('CITEseq22_112_prot_RNA_pairs_13gr.csv'))
 
 matching_names = []
 for i in range(112):

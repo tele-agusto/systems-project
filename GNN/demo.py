@@ -74,33 +74,8 @@ if opts.mode == 'data':
         torch.save(conn, f"{Config.DATA_FOLDER}connectome.ts")
         torch.save(score, f"{Config.DATA_FOLDER}score.ts")
     elif opts.data_source == 'saved':
-        #change
-        adj_t = torch.tensor(utr.adjacency)
-        edge_index = adj_t.nonzero().t().contiguous()
-
-
-        # Load data and metadata
-        df_cite_targets = pd.read_hdf(return_h5_path('train_cite_targets.h5'))
-        df_cite_inputs = pd.read_hdf(return_h5_path('train_cite_inputs.h5'))
-        df_meta = pd.read_csv('/Users/tele/open-problems-multimodal/metadata.csv', index_col='cell_id')
-        # df_meta = pd.read_csv('/home/ioa20/project/metadata.csv', index_col='cell_id')
-
-        df_meta = df_meta[df_meta.technology == 'citeseq']
-        df_meta = df_meta[df_meta.day != 7]
-        df_meta = df_meta[df_meta.donor != 27678]
-        inputs = df_cite_inputs.loc[df_meta.index]
-        targets = df_cite_targets.loc[df_meta.index]
-        to_drop = [column for column in train_inputs.columns if column not in list(utr.utrs.Gene)]
-        inputs_gnn = inputs.drop(inputs[to_drop], axis=1)
-        to_drop_2 = [column for column in train_targets.columns if column not in list(utr.utrs.Protein)]
-        targets_gnn = targets.drop(targets[to_drop_2], axis=1)
-
-
-        conn = inputs_gnn
-        score = targets_gnn
-
-        # conn = torch.load(f"{Config.DATA_FOLDER}connectome.ts")
-        # score = torch.load(f"{Config.DATA_FOLDER}score.ts")
+        conn = torch.load(f"{Config.DATA_FOLDER}connectome.ts")
+        score = torch.load(f"{Config.DATA_FOLDER}score.ts")
     else:
         raise Exception("Unknown argument.")
 

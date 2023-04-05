@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import scipy.signal.convolve
 
-seq_dict = {rec.id : rec.seq for rec in SeqIO.parse("/Users/tele/open-problems-multimodal/martquery_geneutrscanonical.txt", "fasta")}
+seq_dict = {rec.id : rec.seq for rec in SeqIO.parse("/content/drive/MyDrive/martquery_geneutrscanonical.txt", "fasta")}
+df_cite_inputs = pd.read_hdf(return_h5_path('train_cite_inputs.h5'))
 
 gutrs = []
 for key in seq_dict.keys():
@@ -11,7 +12,7 @@ for key in seq_dict.keys():
 
 gutrs = pd.DataFrame(gutrs, columns=['gene', 'UTR'])
 
-gene_names = list(train_inputs.columns)
+gene_names = list(df_cite_inputs.columns)
 
 Genes = []
 for gene in gutrs.gene:

@@ -9,17 +9,25 @@ import torch.nn.functional as F
 from torch_geometric.nn.dense import DenseGCNConv
 
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.utils import add_remaining_self_loops, to_dense_adj
+from torch_geometric.utils import add_remaining_self_loops, to_dense_adj, degree
 from torch.nn import Linear as Lin
 from torch_geometric.nn import SAGEConv
+import numpy as np
 
 # pass messages between different genes in same cell
-class FeatGraphConv(MessagePassing):
-    def __init__(self, in_channels,hidden , out_channels, aggr='mean', bias = True,
+class RegGNN(MessagePassing):
+    def __init__(self, in_channels,hidden , out_channels, aggr='sum', node_dim = -2, bias = True,
                      **kwargs):
-        super(FeatGraphConv, self).__init__(aggr=aggr, **kwargs)
-        self.lin1 = Lin(2*hidden, out_channels, bias=bias)
+    # def __init__(self, in_channels, aggr='mean', node_dim = -2, bias = True,
+    #                  **kwargs):
+        super(RegGNN, self).__init__(aggr=aggr, **kwargs)
+        # self.lin1 = Lin(2*hidden, out_channels, bias=bias)
+        # self.lin2 = Lin(in_channels, hidden, bias=bias)
+        self.lin1 = Lin(2*128, out_channels, bias=bias)
         self.lin2 = Lin(in_channels, hidden, bias=bias)
+        self.lin3 = Lin(110, 110, bias=bias)
+        # self.lin1 = Lin(2*128, 128, bias=bias)
+        # self.lin2 = Lin(126, 110, bias=bias)
 
     def forward(self, x, edge_index, edge_weight=None, size=None):
         # edge_index = add_remaining_self_loops(edge_index=edge_index.t())
@@ -27,12 +35,43 @@ class FeatGraphConv(MessagePassing):
         # edge_index = to_dense_adj(edge_index)
         # print(x.dtype)
         # print(edge_index.dtype)
-        h = self.lin2(x)
+        h = self.lin2(x.t())
+        h = h.t()
+        # h = x
         edge_index = edge_index.int()
         edge_index = edge_index.nonzero().contiguous()
         edge_index = edge_index.t()
-        return self.propagate(edge_index, size=size, x=x, h=h,
+
+        # row, col = edge_index
+        # deg = degree(col, h.size(0), dtype=h.dtype)
+        # deg_inv_sqrt = deg.pow(-0.5)
+        # deg_inv_sqrt[deg_inv_sqrt == float('inf')] = 0
+        # norm = deg_inv_sqrt[row] * deg_inv_sqrt[col]
+        # norm=norm
+        x = self.propagate(edge_index, size=size, x=x, h=h,
                               edge_weight=edge_weight)
+        # x = x.t()
+        # x = self.lin3(x)
+        # x = x.t()
+        return x
+        
+
+    # def forward(self, x, edge_index, edge_weight=None, size=None):
+    #     # edge_index = add_remaining_self_loops(edge_index=edge_index.t())
+    #     # edge_index = edge_index.t()
+    #     # edge_index = to_dense_adj(edge_index)
+    #     # print(x.dtype)
+    #     # print(edge_index.dtype)
+    #     h = x
+    #     edge_index = edge_index.int()
+    #     edge_index = edge_index.nonzero().contiguous()
+    #     edge_index = edge_index.t()
+    #     x = self.propagate(edge_index, size=size, x=x, h=h,
+    #                           edge_weight=edge_weight)
+    #     x = x.t()                      
+    #     x = self.lin2(x)
+    #     return(x)
+
 
     def message(self, h_j, edge_weight):
         return h_j if edge_weight is None else edge_weight.view(-1, 1) * h_j
@@ -44,18 +83,23 @@ class FeatGraphConv(MessagePassing):
         return F.mse_loss(pred, score)
 
 # message passing and then fully connected layer to predict protein expression
-class RegGNN(nn.Module):
+class RegGNN2(nn.Module):
     def __init__(self, in_channels):
-        super(RegGNN, self).__init__()
+        super(RegGNN2, self).__init__()
 
-        self.conv1 = FeatGraphConv(in_channels, in_channels, in_channels, aggr='mean')
+        # self.conv1 = FeatGraphConv(in_channels, in_channels, in_channels, aggr='mean')
+        self.conv1 = DenseGCNConv(in_channels,in_channels)
         self.lin = Lin(110, 110)
 
     def forward(self, x, edge_index):
-        x = torch.relu(self.conv1(x, edge_index))
         x = x.t()
-        x = self.lin(x)
-        x = x.t()
+        # x = F.prelu(self.conv1(x, edge_index), weight=torch.tensor(-0.2))
+        x = self.conv1(x, edge_index)
+        # x = x[:,0:110,:]
+        # x = torch.transpose(x, 2, 1)
+        # x = self.lin(x)
+        # x = torch.transpose(x, 2, 1)
+        # x = x.t()
         return x
 
     def loss(self, pred, score):

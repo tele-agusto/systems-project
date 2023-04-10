@@ -13,8 +13,11 @@ from reggnn import RegGNN
 
 from config import Config
 import UTR as utr
+# import UTR_full as utr
 import pandas as pd
 import torch_geometric
+from sklearn.decomposition import PCA
+from numpy.random import shuffle
 
 
 def return_h5_path(file):
@@ -23,8 +26,8 @@ def return_h5_path(file):
 
 
 def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
-                    dropout=0.1, k_list=list(range(2, 16)), lr=1e-5, wd=5e-4,
-                    device=torch.device('cpu'), num_epoch=200, n_select_splits=10):
+                    dropout=0.1, k_list=list(range(2, 16)), lr=3e-5, wd=5e-4,
+                    device=torch.device('cpu'), num_epoch=150, n_select_splits=10):
     if sample_selection is False:
         k_list = [0]
 
@@ -34,25 +37,42 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     
     # 5' utr adjacency matrix
     adj_t = torch.tensor(utr.adjacency)
-    
+    print(utr.adjacency[64,:])
+    print(utr.adjacency[65,:])
+    print(sum(sum(adj_t)))
+
+    ## adding extra nodes for other genes
+    # adj_matrix = np.hstack((utr.adjacency, np.ones((110,16))))
+    # adj_matrix = np.vstack((adj_matrix, np.ones((16,126))))
+    # adj_matrix = np.hstack((adj_matrix, np.ones((126,1))))
+    # adj_matrix = np.vstack((adj_matrix, np.ones((1,127))))
+
+    # adj_t = torch.tensor(adj_matrix)
+    # print(adj_t.shape)
+    # adjacency = pd.read_csv('/content/drive/MyDrive/adjacency.csv')
+    # adjacency = adjacency.to_numpy()
+    # adj_t = torch.tensor(adjacency)
+
 ##     randomly shuffled 5' utr adjacency matrix
-#     dummy_1 = utr.adjacency
-#     print(sum(utr.adjacency))
-#     print(sum(dummy_1))
-#     for i in range(len(dummy_1)):
-#       dummy_1[i,:][i] -= 1
+    # dummy_1 = utr.adjacency
+    # print(sum(utr.adjacency))
+    # print(sum(dummy_1))
+    # for i in range(len(dummy_1)):
+    #   dummy_1[i,i] -= 1
 
-#     dummy_2 = np.array(dummy_1)
-#     random.shuffle(dummy_2)
+    # dummy_2 = np.array(dummy_1)
+    # random.shuffle(dummy_2)
 
-#     for i in range(len(dummy_2)):
-#       dummy_2[i,:][i] += 1
+    # for i in range(len(dummy_2)):
+    #   dummy_2[i,i] += 1
 
-#     print(sum(dummy_2))
-#     adj_t = torch.tensor(dummy_2)
+    # print(sum(dummy_2))
+    # adj_t = torch.tensor(dummy_2)
     
     ## fully-connected adjacency matrix
     # adj_t = torch.ones(110,110)
+    # adj_t = torch.ones(126,126)
+    print(len(adj_t))
    
     # convert adjacency matrix to edge index
     edge_index = adj_t.nonzero().contiguous()
@@ -86,11 +106,13 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     df_meta_2_31800 = df_meta_2[df_meta_2.donor == 31800]
     df_meta_3_31800 = df_meta_3[df_meta_3.donor == 31800]
     df_meta_4_31800 = df_meta_4[df_meta_4.donor == 31800]
+    # indexes = np.hstack((df_meta_2_32606.index, df_meta_3_32606.index, df_meta_4_32606.index, df_meta_2_13176.index, df_meta_3_13176.index, df_meta_4_13176.index, df_meta_2_31800.index, df_meta_2_31800.index, df_meta_2_31800.index))
     # df_meta = df_meta.iloc[0:5000,:]
     print(df_meta.shape)
     
     # order inputs and targets by donor and day + drop columns of genes w/o corresponding proteins
     inputs = df_cite_inputs.loc[df_meta.index]
+    # inputs_gnn = inputs.reindex(indexes)
     targets = df_cite_targets.loc[df_meta.index]
     to_drop = [column for column in inputs.columns if column not in list(utr.utrs.Full_gene)]
     print(len(to_drop))
@@ -105,7 +127,29 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     inputs_gnn_8 = inputs_gnn.loc[df_meta_3_31800.index]
     inputs_gnn_9 = inputs_gnn.loc[df_meta_4_31800.index]
     inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6,inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
+    # male_1 = np.zeros((len(inputs_gnn_1) + len(inputs_gnn_2) + len(inputs_gnn_3),1))
+    # female_1 = np.ones((len(inputs_gnn_4) + len(inputs_gnn_5) + len(inputs_gnn_6),1))
+    # male_2 = np.zeros((len(inputs_gnn_7) + len(inputs_gnn_8) + len(inputs_gnn_9),1))
+    # sex = np.vstack((male_1,female_1,male_2))
+    # inputs_gnn = np.hstack((inputs_gnn, sex))
     inputs_gnn = inputs_gnn[0:70656,:]
+    # for i in range(len(inputs_gnn)):
+    #   inputs_gnn[i,101] = 0
+    # print(sum(inputs_gnn[:,101]))
+    print(inputs_gnn.shape)
+    # train_inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6))
+    # test_inputs_gnn = np.vstack((inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
+    # shuffle(train_inputs_gnn)
+    # shuffle(test_inputs_gnn)
+    ## add nodes for genes without proteins
+    # rest_of_data = PCA(n_components=16).fit_transform(inputs_gnn)
+    # print(inputs_gnn.shape)
+    # print(rest_of_data.shape)
+    # inputs_gnn = np.hstack((inputs_gnn, rest_of_data))
+    # rest_of_data_train = PCA(n_components=16).fit_transform(train_inputs_gnn)
+    # rest_of_data_test = PCA(n_components=16).fit_transform(test_inputs_gnn)
+    # train_inputs_gnn = np.hstack((train_inputs_gnn, rest_of_data_train))
+    # test_inputs_gnn = np.hstack((inputs_gnn, rest_of_data_test))
     to_drop_2 = [column for column in targets.columns if column not in list(utr.utrs.Protein)]
     print(len(to_drop_2))
     print(inputs_gnn.shape)
@@ -122,7 +166,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     targets_gnn_8 = targets_gnn.loc[df_meta_3_31800.index]
     targets_gnn_9 = targets_gnn.loc[df_meta_4_31800.index]
     targets_gnn = np.vstack((targets_gnn_1,targets_gnn_2,targets_gnn_3,targets_gnn_4,targets_gnn_5,targets_gnn_6,targets_gnn_7,targets_gnn_8,targets_gnn_9))
-    
+    targets_gnn = targets_gnn[0:70656,:]
     # inputs_gnn = torch.tensor(inputs_gnn.values)
     inputs_gnn = torch.tensor(inputs_gnn)
     inputs_gnn = torch.t(inputs_gnn)
@@ -146,9 +190,14 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
 
     data = pyg_data
 
+    train_test_split = [[list(range(0,361)), list(range(361,552))], [list(range(187,552)), list(range(0,187))], [np.hstack((list((range(0,187))), list(range(361,552)))), list(range(187,361))]]
+
     fold = -1
-    for train_idx, test_idx in KFold(Config.K_FOLDS, shuffle=shuffle,
-                                     random_state=random_state).split(data):
+    # for train_idx, test_idx in KFold(Config.K_FOLDS, shuffle=shuffle,
+    #                                  random_state=random_state).split(data):
+    for train_idx, test_idx in train_test_split:
+        print(train_idx)
+        print(test_idx)
         fold += 1
         print(f"Cross Validation Fold {fold + 1}/{Config.K_FOLDS}")
         if sample_selection:
@@ -164,7 +213,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
             test_data = [data[i] for i in test_idx]
 
             # candidate_model = RegGNN(7476, 512, 110, dropout).float().to(device)
-            candidate_model = RegGNN(128).float().to(device)
+            candidate_model = RegGNN(110,110,128).float().to(device)
             optimizer = torch.optim.Adam(candidate_model.parameters(), lr=lr, weight_decay=wd)
             train_loader, test_loader = data_utils.get_loaders(selected_train_data, test_data)
             candidate_model.train()
@@ -218,8 +267,8 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
             overall_scores[k].extend(scores)
 
     for k in k_list:
-        overall_preds[k] = np.vstack(overall_preds[k]).ravel()
-        overall_scores[k] = np.vstack(overall_scores[k]).ravel()
+        overall_preds[k] = np.hstack(overall_preds[k]).ravel()
+        overall_scores[k] = np.hstack(overall_scores[k]).ravel()
 
     if sample_selection is False:
         overall_preds = overall_preds[k_list[0]]

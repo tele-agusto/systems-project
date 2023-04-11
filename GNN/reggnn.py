@@ -16,7 +16,7 @@ import numpy as np
 
 # pass messages between different genes in same cell
 class RegGNN(MessagePassing):
-    def __init__(self, in_channels,hidden , out_channels, aggr='sum', node_dim = -2, bias = True,
+    def __init__(self, in_channels,hidden , out_channels, aggr='max', node_dim = -2, bias = True,
                      **kwargs):
     # def __init__(self, in_channels, aggr='mean', node_dim = -2, bias = True,
     #                  **kwargs):
@@ -24,6 +24,8 @@ class RegGNN(MessagePassing):
         # self.lin1 = Lin(2*hidden, out_channels, bias=bias)
         # self.lin2 = Lin(in_channels, hidden, bias=bias)
         self.lin1 = Lin(2*128, out_channels, bias=bias)
+        # self.lin1 = Lin(2*110, 110, bias=bias)
+        # self.lin1 = Lin(110, 110, bias=bias)
         self.lin2 = Lin(in_channels, hidden, bias=bias)
         self.lin3 = Lin(110, 110, bias=bias)
         # self.lin1 = Lin(2*128, 128, bias=bias)
@@ -79,13 +81,19 @@ class RegGNN(MessagePassing):
     def update(self, aggr_out, h):
         return self.lin1(torch.cat((h, aggr_out), 1))
 
+    # def update(self, aggr_out, h):
+    #     return self.lin1(torch.cat((h.t(), aggr_out.t()), 1)).t()
+
+    # def update(self, aggr_out, h):
+    #     return self.lin1(aggr_out.t()).t()
+
     def loss(self, pred, score):
         return F.mse_loss(pred, score)
 
 # message passing and then fully connected layer to predict protein expression
-class RegGNN2(nn.Module):
+class RegGNN3(nn.Module):
     def __init__(self, in_channels):
-        super(RegGNN2, self).__init__()
+        super(RegGNN3, self).__init__()
 
         # self.conv1 = FeatGraphConv(in_channels, in_channels, in_channels, aggr='mean')
         self.conv1 = DenseGCNConv(in_channels,in_channels)
@@ -94,12 +102,12 @@ class RegGNN2(nn.Module):
     def forward(self, x, edge_index):
         x = x.t()
         # x = F.prelu(self.conv1(x, edge_index), weight=torch.tensor(-0.2))
-        x = self.conv1(x, edge_index)
+        # x = self.conv1(x, edge_index)
         # x = x[:,0:110,:]
         # x = torch.transpose(x, 2, 1)
-        # x = self.lin(x)
+        x = self.lin(x)
         # x = torch.transpose(x, 2, 1)
-        # x = x.t()
+        x = x.t()
         return x
 
     def loss(self, pred, score):

@@ -33,7 +33,7 @@ del Genes[79]
 del Genes[78]
 # del Genes[93]
 # del Genes[92]
-print(Genes[69:74])
+# print(Genes[69:74])
 # del Genes[72]
 # del Genes[71]
 
@@ -49,7 +49,7 @@ del Proteins[79]
 del Proteins[78]
 # del Proteins[93]
 # del Proteins[92]
-print(Proteins)
+# print(Proteins)
 # del Proteins[72]
 # del Proteins[71]
 # print(Proteins)
@@ -64,6 +64,7 @@ utrs['Gene_protein_name'] = Gene_protein_name
 
 utrs_sorted = utrs.sort_values('Gene_protein_name')
 # utrs_sorted = utrs
+## for 5' utr
 utrs_sorted['UTR'][76] = 'A'
 utrs_sorted['UTR'][80] = 'A'
 
@@ -88,20 +89,25 @@ for i in range(len(utrs_sorted.UTR)):
         convolutions_G = np.convolve(one_hot_encode(utrs_sorted['UTR'][utrs_sorted.index[i]])[:,2], one_hot_encode(utrs_sorted['UTR'][utrs_sorted.index[j]])[::-1][:,2])
         convolutions_T = np.convolve(one_hot_encode(utrs_sorted['UTR'][utrs_sorted.index[i]])[:,3], one_hot_encode(utrs_sorted['UTR'][utrs_sorted.index[j]])[::-1][:,3])
 
-        # convolutions[i,j] = (((max(convolutions_G + convolutions_T + convolutions_C + convolutions_A)*1.0)/length)/0.0625) - diff/10
-        convolutions[i,j] = max(convolutions_G + convolutions_T + convolutions_C + convolutions_A)
-
+        # change convolutions calculation
+        convolutions[i,j] = (((max(convolutions_G + convolutions_T + convolutions_C + convolutions_A)*1.0)/length)/0.0625) - diff/10
+        # convolutions[i,j] = max(convolutions_G + convolutions_T + convolutions_C + convolutions_A)
+print(sum(convolutions))
+# 5' utr normal order
 for i in range(len(convolutions)):
-    convolutions[64, i] = 0
-    convolutions[65,i] = 0
-
+    convolutions[63, i] = 0
+    convolutions[64,i] = 0
+    convolutions[i,63] = 0
+    convolutions[i,64] = 0
+convolutions[63,63] = 16
 convolutions[64,64] = 16
-convolutions[65,65] = 16
 
+# 5' utr shuffled order
 # for i in range(len(convolutions)):
 #     convolutions[76, i] = 0
 #     convolutions[80,i] = 0
-
+#     convolutions[i,76] = 0
+#     convolutions[i,80] = 0
 # convolutions[76,76] = 16
 # convolutions[80,80] = 16
 

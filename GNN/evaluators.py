@@ -10,6 +10,7 @@ import torch
 
 import data_utils
 from reggnn import RegGNN
+from reggnn import RegGNN3
 
 from config import Config
 import UTR as utr
@@ -39,6 +40,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     adj_t = torch.tensor(utr.adjacency)
     print(utr.adjacency[64,:])
     print(utr.adjacency[65,:])
+    print(sum(adj_t))
     print(sum(sum(adj_t)))
 
     ## adding extra nodes for other genes
@@ -52,22 +54,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     # adjacency = pd.read_csv('/content/drive/MyDrive/adjacency.csv')
     # adjacency = adjacency.to_numpy()
     # adj_t = torch.tensor(adjacency)
-
-##     randomly shuffled 5' utr adjacency matrix
-    # dummy_1 = utr.adjacency
-    # print(sum(utr.adjacency))
-    # print(sum(dummy_1))
-    # for i in range(len(dummy_1)):
-    #   dummy_1[i,i] -= 1
-
-    # dummy_2 = np.array(dummy_1)
-    # random.shuffle(dummy_2)
-
-    # for i in range(len(dummy_2)):
-    #   dummy_2[i,i] += 1
-
-    # print(sum(dummy_2))
-    # adj_t = torch.tensor(dummy_2)
+    
     
     ## fully-connected adjacency matrix
     # adj_t = torch.ones(110,110)
@@ -117,6 +104,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     to_drop = [column for column in inputs.columns if column not in list(utr.utrs.Full_gene)]
     print(len(to_drop))
     inputs_gnn = inputs.drop(inputs[to_drop], axis=1)
+    # print(inputs_gnn.columns)
     inputs_gnn_1 = inputs_gnn.loc[df_meta_2_32606.index]
     inputs_gnn_2 = inputs_gnn.loc[df_meta_3_32606.index]
     inputs_gnn_3 = inputs_gnn.loc[df_meta_4_32606.index]
@@ -133,9 +121,16 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     # sex = np.vstack((male_1,female_1,male_2))
     # inputs_gnn = np.hstack((inputs_gnn, sex))
     inputs_gnn = inputs_gnn[0:70656,:]
-    # for i in range(len(inputs_gnn)):
-    #   inputs_gnn[i,101] = 0
-    # print(sum(inputs_gnn[:,101]))
+    # with_edges = [1, 8, 13, 17,19,22,27,28,29,36,40,51,54,57,59,60,75,88,91, 98,101,106,107]
+    with_edges = []
+    for i in range(len(adj_t)):
+      if sum(adj_t[i])>2:
+        with_edges.append(i)
+    print(with_edges)
+    for j in range(len(with_edges)):
+      for i in range(len(inputs_gnn)):
+        inputs_gnn[i,with_edges[j]] = 0
+      print(sum(inputs_gnn[:,with_edges[j]]))
     print(inputs_gnn.shape)
     # train_inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6))
     # test_inputs_gnn = np.vstack((inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
@@ -153,6 +148,8 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     to_drop_2 = [column for column in targets.columns if column not in list(utr.utrs.Protein)]
     print(len(to_drop_2))
     print(inputs_gnn.shape)
+    # print(utr.utrs.Full_gene)
+    # print(utr.utrs_sorted.Full_gene)
     targets_gnn = targets.drop(targets[to_drop_2], axis=1)
     print(targets_gnn.shape)
     targets_gnn.round(decimals=3)
@@ -213,7 +210,8 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
             test_data = [data[i] for i in test_idx]
 
             # candidate_model = RegGNN(7476, 512, 110, dropout).float().to(device)
-            candidate_model = RegGNN(110,110,128).float().to(device)
+            # candidate_model = RegGNN(110,110,128).float().to(device)
+            candidate_model = RegGNN3(110).float().to(device)
             optimizer = torch.optim.Adam(candidate_model.parameters(), lr=lr, weight_decay=wd)
             train_loader, test_loader = data_utils.get_loaders(selected_train_data, test_data)
             candidate_model.train()

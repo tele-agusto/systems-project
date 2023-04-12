@@ -16,15 +16,15 @@ import numpy as np
 
 # pass messages between different genes in same cell
 class RegGNN(MessagePassing):
-    def __init__(self, in_channels,hidden , out_channels, aggr='max', node_dim = -2, bias = True,
+    def __init__(self, in_channels,hidden , out_channels, aggr='sum', node_dim = -2, bias = True,
                      **kwargs):
     # def __init__(self, in_channels, aggr='mean', node_dim = -2, bias = True,
     #                  **kwargs):
         super(RegGNN, self).__init__(aggr=aggr, **kwargs)
         # self.lin1 = Lin(2*hidden, out_channels, bias=bias)
         # self.lin2 = Lin(in_channels, hidden, bias=bias)
-        self.lin1 = Lin(2*128, out_channels, bias=bias)
-        # self.lin1 = Lin(2*110, 110, bias=bias)
+        # self.lin1 = Lin(2*128, out_channels, bias=bias)
+        self.lin1 = Lin(2*110, 110, bias=bias)
         # self.lin1 = Lin(110, 110, bias=bias)
         self.lin2 = Lin(in_channels, hidden, bias=bias)
         self.lin3 = Lin(110, 110, bias=bias)
@@ -37,7 +37,7 @@ class RegGNN(MessagePassing):
         # edge_index = to_dense_adj(edge_index)
         # print(x.dtype)
         # print(edge_index.dtype)
-        h = self.lin2(x.t())
+        h = F.relu(self.lin2(x.t()))
         h = h.t()
         # h = x
         edge_index = edge_index.int()
@@ -78,11 +78,11 @@ class RegGNN(MessagePassing):
     def message(self, h_j, edge_weight):
         return h_j if edge_weight is None else edge_weight.view(-1, 1) * h_j
 
-    def update(self, aggr_out, h):
-        return self.lin1(torch.cat((h, aggr_out), 1))
-
     # def update(self, aggr_out, h):
-    #     return self.lin1(torch.cat((h.t(), aggr_out.t()), 1)).t()
+    #     return self.lin1(torch.cat((h, aggr_out), 1))
+
+    def update(self, aggr_out, h):
+        return self.lin1(torch.cat((h.t(), aggr_out.t()), 1)).t()
 
     # def update(self, aggr_out, h):
     #     return self.lin1(aggr_out.t()).t()

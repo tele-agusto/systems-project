@@ -31,11 +31,12 @@ for gene in utrs.gene:
 #delete higher index first
 del Genes[79]
 del Genes[78]
-# del Genes[93]
-# del Genes[92]
-# print(Genes[69:74])
+# del Genes[95]
+# del Genes[94]
+# print(Genes[70:74])
 # del Genes[72]
 # del Genes[71]
+# print(Genes[70:74])
 
 utrs['Full_gene'] = Genes
 
@@ -47,11 +48,12 @@ for gene in utrs.Full_gene:
 Proteins = list(dict.fromkeys(Proteins))
 del Proteins[79]
 del Proteins[78]
-# del Proteins[93]
-# del Proteins[92]
-# print(Proteins)
+# del Proteins[95]
+# del Proteins[94]
+# print(Proteins[70:74])
 # del Proteins[72]
 # del Proteins[71]
+# print(Proteins[70:74])
 # print(Proteins)
 
 utrs['Protein'] = Proteins

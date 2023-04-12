@@ -59,7 +59,19 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     ## fully-connected adjacency matrix
     # adj_t = torch.ones(110,110)
     # adj_t = torch.ones(126,126)
-    print(len(adj_t))
+    # print(len(adj_t))
+
+    ## random adjacency matrix
+    # adj_t = np.random.choice([0,1],12100,p=[0.99083,0.00917]).reshape(110,110)
+
+    # for i in range(len(adj_t)):
+    #     adj_t[i,i] = 1
+    # for i in range(len(adj_t)):
+    #     for j in range(len(adj_t)):
+    #         if adj_t[i,j] == 1:
+    #             adj_t[j,i] = 1
+    # print(sum(sum(adj_t)))
+    # adj_t = torch.tensor(adj_t)
    
     # convert adjacency matrix to edge index
     edge_index = adj_t.nonzero().contiguous()
@@ -124,7 +136,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     # with_edges = [1, 8, 13, 17,19,22,27,28,29,36,40,51,54,57,59,60,75,88,91, 98,101,106,107]
     with_edges = []
     for i in range(len(adj_t)):
-      if sum(adj_t[i])>2:
+      if sum(adj_t[i])>4:
         with_edges.append(i)
     print(with_edges)
     for j in range(len(with_edges)):
@@ -210,8 +222,8 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
             test_data = [data[i] for i in test_idx]
 
             # candidate_model = RegGNN(7476, 512, 110, dropout).float().to(device)
-            # candidate_model = RegGNN(110,110,128).float().to(device)
-            candidate_model = RegGNN3(110).float().to(device)
+            candidate_model = RegGNN(110,110,128).float().to(device)
+            # candidate_model = RegGNN3(110).float().to(device)
             optimizer = torch.optim.Adam(candidate_model.parameters(), lr=lr, weight_decay=wd)
             train_loader, test_loader = data_utils.get_loaders(selected_train_data, test_data)
             candidate_model.train()

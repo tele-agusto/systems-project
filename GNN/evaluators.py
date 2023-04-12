@@ -176,6 +176,14 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     targets_gnn_9 = targets_gnn.loc[df_meta_4_31800.index]
     targets_gnn = np.vstack((targets_gnn_1,targets_gnn_2,targets_gnn_3,targets_gnn_4,targets_gnn_5,targets_gnn_6,targets_gnn_7,targets_gnn_8,targets_gnn_9))
     targets_gnn = targets_gnn[0:70656,:]
+    
+    # impute missing values
+    # targets_gnn = inputs_gnn
+    # for j in range(len(inputs_gnn)/5):
+    #   b = random.randint(0, 109)
+    #   for i in range(len(inputs_gnn)):
+    #     inputs_gnn[i,b] = 0
+    
     # inputs_gnn = torch.tensor(inputs_gnn.values)
     inputs_gnn = torch.tensor(inputs_gnn)
     inputs_gnn = torch.t(inputs_gnn)

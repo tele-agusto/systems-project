@@ -116,8 +116,14 @@ convolutions[64,64] = 16
 adjacency = np.array([0]*12100).reshape(110,110)
 
 #change threshhold
+# for i in range(len(convolutions)):
+#     for j in range(len(convolutions)):
+#         if convolutions[i,j] > 5:
+#                 adjacency[i,j] = 1
+
 for i in range(len(convolutions)):
-    for j in range(len(convolutions)):
-        if convolutions[i,j] > 5:
-                adjacency[i,j] = 1
+  for j in range(len(convolutions)):
+    if convolutions[i,j] > sorted(convolutions[i,:],reverse=True)[4]:
+      adjacency[i,j] = 1
+      adjacency[j,i] = 1
 

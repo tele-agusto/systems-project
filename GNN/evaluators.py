@@ -19,7 +19,7 @@ import pandas as pd
 import torch_geometric
 from sklearn.decomposition import PCA
 from numpy.random import shuffle
-
+from torch_geometric.transforms import FeaturePropagation
 
 def return_h5_path(file):
     path = f'/content/drive/MyDrive/{file}'
@@ -105,6 +105,16 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     df_meta_2_31800 = df_meta_2[df_meta_2.donor == 31800]
     df_meta_3_31800 = df_meta_3[df_meta_3.donor == 31800]
     df_meta_4_31800 = df_meta_4[df_meta_4.donor == 31800]
+
+    # df_meta_2_32606 = df_meta_2_32606.sort_values(by=['cell_type'])
+    # df_meta_3_32606 = df_meta_3_32606.sort_values(by=['cell_type'])
+    # df_meta_4_32606 = df_meta_4_32606.sort_values(by=['cell_type'])
+    # df_meta_2_13176 = df_meta_2_13176.sort_values(by=['cell_type'])
+    # df_meta_3_13176 = df_meta_3_13176.sort_values(by=['cell_type'])
+    # df_meta_4_13176 = df_meta_4_13176.sort_values(by=['cell_type'])
+    # df_meta_2_31800 = df_meta_2_31800.sort_values(by=['cell_type'])
+    # df_meta_3_31800 = df_meta_3_31800.sort_values(by=['cell_type'])
+    # df_meta_4_31800 = df_meta_4_31800.sort_values(by=['cell_type'])
     # indexes = np.hstack((df_meta_2_32606.index, df_meta_3_32606.index, df_meta_4_32606.index, df_meta_2_13176.index, df_meta_3_13176.index, df_meta_4_13176.index, df_meta_2_31800.index, df_meta_2_31800.index, df_meta_2_31800.index))
     # df_meta = df_meta.iloc[0:5000,:]
     print(df_meta.shape)
@@ -126,7 +136,38 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     inputs_gnn_7 = inputs_gnn.loc[df_meta_2_31800.index]
     inputs_gnn_8 = inputs_gnn.loc[df_meta_3_31800.index]
     inputs_gnn_9 = inputs_gnn.loc[df_meta_4_31800.index]
-    inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6,inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
+    
+    # inputs_gnn_1 = inputs_gnn_1.sample(frac=1)
+    # inputs_gnn_2 = inputs_gnn_2.sample(frac=1)
+    # inputs_gnn_3 = inputs_gnn_3.sample(frac=1)
+    # inputs_gnn_4 = inputs_gnn_4.sample(frac=1)
+    # inputs_gnn_5 = inputs_gnn_5.sample(frac=1)
+    # inputs_gnn_6 = inputs_gnn_6.sample(frac=1)
+    # inputs_gnn_7 = inputs_gnn_7.sample(frac=1)
+    # inputs_gnn_8 = inputs_gnn_8.sample(frac=1)
+    # inputs_gnn_9 = inputs_gnn_9.sample(frac=1)
+    
+    print(inputs_gnn.columns)
+    print(utr.utrs.Full_gene)
+    print(utr.utrs_sorted.Full_gene)
+    
+
+    # donor cv
+    inputs_donor1 = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3))
+    inputs_donor2 = np.vstack((inputs_gnn_4,inputs_gnn_5,inputs_gnn_6))
+    inputs_donor3 = np.vstack((inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
+    
+    inputs_gnn = np.vstack((inputs_donor1, inputs_donor2, inputs_donor3))
+    # inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6,inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
+    
+    # day cv
+    # inputs_day1 = np.vstack((inputs_gnn_1,inputs_gnn_4,inputs_gnn_7))
+    # inputs_day2 = np.vstack((inputs_gnn_2,inputs_gnn_5,inputs_gnn_8))
+    # inputs_day3 = np.vstack((inputs_gnn_3,inputs_gnn_6,inputs_gnn_9))
+    # inputs_gnn = np.vstack((inputs_day1, inputs_day2, inputs_day3))
+    # inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_4,inputs_gnn_7,inputs_gnn_2,inputs_gnn_5,inputs_gnn_8,inputs_gnn_3,inputs_gnn_6,inputs_gnn_9))
+    
+    ## sex features
     # male_1 = np.zeros((len(inputs_gnn_1) + len(inputs_gnn_2) + len(inputs_gnn_3),1))
     # female_1 = np.ones((len(inputs_gnn_4) + len(inputs_gnn_5) + len(inputs_gnn_6),1))
     # male_2 = np.zeros((len(inputs_gnn_7) + len(inputs_gnn_8) + len(inputs_gnn_9),1))
@@ -135,15 +176,32 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     inputs_gnn = inputs_gnn[0:70656,:]
     # with_edges = [1, 8, 13, 17,19,22,27,28,29,36,40,51,54,57,59,60,75,88,91, 98,101,106,107]
     with_edges = []
-    for i in range(len(adj_t)):
-      if sum(adj_t[i])>4:
-        with_edges.append(i)
-    print(with_edges)
-    for j in range(len(with_edges)):
+    # for i in range(len(adj_t)):
+    #   if sum(adj_t[i])>4:
+    #     with_edges.append(i)
+    # print(with_edges)
+    # for j in range(len(with_edges)):
+    #   for i in range(len(inputs_gnn)):
+    #     inputs_gnn[i,with_edges[j]] = 0
+    #   print(sum(inputs_gnn[:,with_edges[j]]))
+    # print(inputs_gnn.shape)
+
+    ## for GNN delete some data
+    a = 110
+    for j in range(55):
+      a -= 1
+      b = random.randint(0, a)
       for i in range(len(inputs_gnn)):
-        inputs_gnn[i,with_edges[j]] = 0
-      print(sum(inputs_gnn[:,with_edges[j]]))
-    print(inputs_gnn.shape)
+        inputs_gnn[i,b] = 0
+
+    ## for MLP delete some data
+    # a = 110
+    # for j in range(40):
+    #   a -= 1
+    #   b = random.randint(0, a)
+    #   inputs_gnn = np.delete(inputs_gnn, obj=b, axis=1)
+    # print(inputs_gnn.shape)
+
     # train_inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6))
     # test_inputs_gnn = np.vstack((inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
     # shuffle(train_inputs_gnn)
@@ -195,7 +253,13 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
 #     cell_numbers_2 = [0,7476,14475,23986,30057,37700,46185,54580,60389,70988]
     print(inputs_gnn.shape)
     print(targets_gnn.shape)
+
+
+    # pre_pyg_data = torch_geometric.data.Data(x=inputs_gnn,edge_index=edge_index,edge_attr=None))
+    # transform = FeaturePropagation(missing_mask = np.where(pre_pyg_data.x == 0, 0, 1))
+    # pre_pyg_data = transform(pre_pyg_data)
     
+    # inputs_gnn = pre_pyg_data.x
     # load batches into Data object for gnn training
     pyg_data = []
     for i in range(552):
@@ -205,9 +269,25 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
                                                                 decimals=3), edge_index=edge_index,
                                                   edge_attr=None))
 
-    data = pyg_data
+    ## Feature propagation
+    # print(sum(pyg_data[0].x))
+    # print(pyg_data[0].x)
+    # print(np.where(pyg_data[0].x.int() < 0.1, 1, 0))
+    # for i in range(552):
+    #   transform = FeaturePropagation(missing_mask = torch.tensor(np.where(pyg_data[i].x.int() < 0.1, 1, 0)))
+    #   pyg_data[i] = transform(pyg_data[i])
+    # print(pyg_data[0].x)
+    # print(sum(pyg_data[0].x))
 
+
+    data = pyg_data
+    
+
+    # donor cv
     train_test_split = [[list(range(0,361)), list(range(361,552))], [list(range(187,552)), list(range(0,187))], [np.hstack((list((range(0,187))), list(range(361,552)))), list(range(187,361))]]
+    
+    # day cv
+    # train_test_split = [[list(range(0,334)), list(range(334,552))], [list(range(171,552)), list(range(0,171))], [np.hstack((list((range(0,171))), list(range(334,552)))), list(range(171,334))]]
 
     fold = -1
     # for train_idx, test_idx in KFold(Config.K_FOLDS, shuffle=shuffle,
@@ -231,7 +311,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
 
             # candidate_model = RegGNN(7476, 512, 110, dropout).float().to(device)
             candidate_model = RegGNN(110,110,128).float().to(device)
-            # candidate_model = RegGNN3(110).float().to(device)
+            # candidate_model = RegGNN3(70).float().to(device)
             optimizer = torch.optim.Adam(candidate_model.parameters(), lr=lr, weight_decay=wd)
             train_loader, test_loader = data_utils.get_loaders(selected_train_data, test_data)
             candidate_model.train()

@@ -16,7 +16,7 @@ import numpy as np
 
 # pass messages between different genes in same cell
 class RegGNN(MessagePassing):
-    def __init__(self, in_channels,hidden , out_channels, aggr='sum', node_dim = -2, bias = True,
+    def __init__(self, in_channels,hidden , out_channels, aggr='max', node_dim = -2, bias = True,
                      **kwargs):
     # def __init__(self, in_channels, aggr='mean', node_dim = -2, bias = True,
     #                  **kwargs):

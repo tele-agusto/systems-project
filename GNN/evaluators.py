@@ -187,12 +187,12 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     # print(inputs_gnn.shape)
 
     ## for GNN delete some data
-    a = 110
-    for j in range(55):
-      a -= 1
-      b = random.randint(0, a)
-      for i in range(len(inputs_gnn)):
-        inputs_gnn[i,b] = 0
+#     a = 110
+#     for j in range(55):
+#       a -= 1
+#       b = random.randint(0, a)
+#       for i in range(len(inputs_gnn)):
+#         inputs_gnn[i,b] = 0
 
     ## for MLP delete some data
     # a = 110

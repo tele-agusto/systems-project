@@ -38,10 +38,10 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     
     # 5' utr adjacency matrix
     adj_t = torch.tensor(utr.adjacency)
-    print(utr.adjacency[64,:])
-    print(utr.adjacency[65,:])
-    print(sum(adj_t))
-    print(sum(sum(adj_t)))
+    # print(utr.adjacency[64,:])
+    # print(utr.adjacency[65,:])
+    # print(sum(adj_t))
+    # print(sum(sum(adj_t)))
 
     ## adding extra nodes for other genes
     # adj_matrix = np.hstack((utr.adjacency, np.ones((110,16))))
@@ -71,7 +71,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     #         if adj_t[i,j] == 1:
     #             adj_t[j,i] = 1
     # print(sum(sum(adj_t)))
-    # adj_t = torch.tensor(adj_t)
+    adj_t = torch.tensor(adj_t)
    
     # convert adjacency matrix to edge index
     edge_index = adj_t.nonzero().contiguous()
@@ -125,7 +125,38 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     targets = df_cite_targets.loc[df_meta.index]
     to_drop = [column for column in inputs.columns if column not in list(utr.utrs.Full_gene)]
     print(len(to_drop))
+    # to_drop = np.hstack((to_drop, ['ENSG00000185896_LAMP1','ENSG00000169442_CD52','ENSG00000213949_ITGA1','ENSG00000160791_CCR5','ENSG00000134460_IL2RA','ENSG00000117091_CD48','ENSG00000100031_GGT1','ENSG00000197405_C5AR1','ENSG00000010278_CD9','ENSG00000150337_FCGR1A','ENSG00000211898_IGHD','ENSG00000121807_CCR2','ENSG00000211899_IGHM','ENSG00000185291_IL3RA','ENSG00000116824_CD2','ENSG00000090339_ICAM1','ENSG00000143226_FCGR2A','ENSG00000026508_CD44','ENSG00000110848_CD69','ENSG00000150093_ITGB1','ENSG00000110651_CD81','ENSG00000204592_HLA-E','ENSG00000170458_CD14','ENSG00000101017_CD40','ENSG00000137101_CD72','ENSG00000012124_CD22','ENSG00000149294_NCAM1','ENSG00000114013_CD86','ENSG00000177455_CD19','ENSG00000197635_DPP4','ENSG00000138185_ENTPD1','ENSG00000166825_ANPEP','ENSG00000102245_CD40LG','ENSG00000206503_HLA-A','ENSG00000089692_LAG3']))
+    # print(len(to_drop))
     inputs_gnn = inputs.drop(inputs[to_drop], axis=1)
+    print(inputs.columns)
+    print(inputs_gnn.columns)
+    print(to_drop)
+
+    # MLP delete some data
+    # a = 110
+    # c = []
+    # for j in range(47):
+    #   a -= 1
+    #   b = random.randint(0, a)
+    #   d = str(inputs_gnn.columns[b])
+    #   print(d)
+    #   c.append(d)
+      # del inputs_gnn[inputs_gnn.columns[b]]
+    
+    
+    # print(c)
+    # inputs_gnn = inputs_gnn.drop(inputs_gnn[c], axis = 1)
+    # # inputs_gnn = inputs_gnn_new
+    # print(inputs_gnn.shape)
+    neurons = inputs_gnn.shape[1]
+    
+    
+    
+
+    # inputs_gnn = np.delete(inputs_gnn, obj=b, axis=1)
+    # inputs_gnn = inputs_gnn[:,b]
+    # print(inputs_gnn.shape) 
+
     # print(inputs_gnn.columns)
     inputs_gnn_1 = inputs_gnn.loc[df_meta_2_32606.index]
     inputs_gnn_2 = inputs_gnn.loc[df_meta_3_32606.index]
@@ -153,18 +184,18 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     
 
     # donor cv
-    inputs_donor1 = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3))
-    inputs_donor2 = np.vstack((inputs_gnn_4,inputs_gnn_5,inputs_gnn_6))
-    inputs_donor3 = np.vstack((inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
+    # inputs_donor1 = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3))
+    # inputs_donor2 = np.vstack((inputs_gnn_4,inputs_gnn_5,inputs_gnn_6))
+    # inputs_donor3 = np.vstack((inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
+    # inputs_gnn = np.vstack((inputs_donor1, inputs_donor2, inputs_donor3))
     
-    inputs_gnn = np.vstack((inputs_donor1, inputs_donor2, inputs_donor3))
     # inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6,inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
     
     # day cv
-    # inputs_day1 = np.vstack((inputs_gnn_1,inputs_gnn_4,inputs_gnn_7))
-    # inputs_day2 = np.vstack((inputs_gnn_2,inputs_gnn_5,inputs_gnn_8))
-    # inputs_day3 = np.vstack((inputs_gnn_3,inputs_gnn_6,inputs_gnn_9))
-    # inputs_gnn = np.vstack((inputs_day1, inputs_day2, inputs_day3))
+    inputs_day1 = np.vstack((inputs_gnn_1,inputs_gnn_4,inputs_gnn_7))
+    inputs_day2 = np.vstack((inputs_gnn_2,inputs_gnn_5,inputs_gnn_8))
+    inputs_day3 = np.vstack((inputs_gnn_3,inputs_gnn_6,inputs_gnn_9))
+    inputs_gnn = np.vstack((inputs_day1, inputs_day2, inputs_day3))
     # inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_4,inputs_gnn_7,inputs_gnn_2,inputs_gnn_5,inputs_gnn_8,inputs_gnn_3,inputs_gnn_6,inputs_gnn_9))
     
     ## sex features
@@ -187,20 +218,27 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     # print(inputs_gnn.shape)
 
     ## for GNN delete some data
-#     a = 110
-#     for j in range(55):
-#       a -= 1
-#       b = random.randint(0, a)
-#       for i in range(len(inputs_gnn)):
-#         inputs_gnn[i,b] = 0
-
-    ## for MLP delete some data
     # a = 110
     # for j in range(40):
     #   a -= 1
     #   b = random.randint(0, a)
-    #   inputs_gnn = np.delete(inputs_gnn, obj=b, axis=1)
-    # print(inputs_gnn.shape)
+    #   for i in range(len(inputs_gnn)):
+    #     inputs_gnn[i,b] = 0
+
+    ## for MLP delete some data
+    # a = 110
+    # b = []
+    # for j in range(10):
+    #   a -= 1
+    #   b.append(random.randint(0, a))
+
+    
+    
+    
+    # # inputs_gnn = np.delete(inputs_gnn, obj=b, axis=1)
+    # inputs_gnn = inputs_gnn[:,b]
+    print(inputs_gnn.shape)
+
 
     # train_inputs_gnn = np.vstack((inputs_gnn_1,inputs_gnn_2,inputs_gnn_3,inputs_gnn_4,inputs_gnn_5,inputs_gnn_6))
     # test_inputs_gnn = np.vstack((inputs_gnn_7,inputs_gnn_8,inputs_gnn_9))
@@ -222,6 +260,7 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     # print(utr.utrs_sorted.Full_gene)
     targets_gnn = targets.drop(targets[to_drop_2], axis=1)
     print(targets_gnn.shape)
+    pd.DataFrame(targets_gnn.columns).to_csv('gnnproteinorder.csv')
     targets_gnn.round(decimals=3)
     targets_gnn_1 = targets_gnn.loc[df_meta_2_32606.index]
     targets_gnn_2 = targets_gnn.loc[df_meta_3_32606.index]
@@ -232,7 +271,10 @@ def evaluate_RegGNN(sample_selection=False, shuffle=False, random_state=None,
     targets_gnn_7 = targets_gnn.loc[df_meta_2_31800.index]
     targets_gnn_8 = targets_gnn.loc[df_meta_3_31800.index]
     targets_gnn_9 = targets_gnn.loc[df_meta_4_31800.index]
-    targets_gnn = np.vstack((targets_gnn_1,targets_gnn_2,targets_gnn_3,targets_gnn_4,targets_gnn_5,targets_gnn_6,targets_gnn_7,targets_gnn_8,targets_gnn_9))
+    # donor cv
+    # targets_gnn = np.vstack((targets_gnn_1,targets_gnn_2,targets_gnn_3,targets_gnn_4,targets_gnn_5,targets_gnn_6,targets_gnn_7,targets_gnn_8,targets_gnn_9))
+    # day cv
+    targets_gnn = np.vstack((targets_gnn_1,targets_gnn_4,targets_gnn_7,targets_gnn_2,targets_gnn_5,targets_gnn_8,targets_gnn_3,targets_gnn_6,targets_gnn_9))
     targets_gnn = targets_gnn[0:70656,:]
     
     # impute missing values
